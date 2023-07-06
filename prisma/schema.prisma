@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model delivery_request {
+  id                                      String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  customer_id                             String?  @db.Uuid
+  courier_id                              String?  @db.Uuid
+  status                                  String   @db.VarChar(255)
+  created_at                              DateTime @default(now()) @db.Timestamp(6)
+  updated_at                              DateTime @default(now()) @db.Timestamp(6)
+  user_delivery_request_courier_idTouser  user?    @relation("delivery_request_courier_idTouser", fields: [courier_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_delivery_request_customer_idTouser user?    @relation("delivery_request_customer_idTouser", fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model feedback {
+  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  customer_id String?  @db.Uuid
+  content     String   @db.VarChar(255)
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @default(now()) @db.Timestamp(6)
+  user        user?    @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model organization {
+  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  description String?  @db.VarChar(255)
+  image       String?  @db.VarChar(255)
+  name        String   @db.VarChar(255)
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @default(now()) @db.Timestamp(6)
+  user_id     String   @db.Uuid
+  tenant_id   String   @db.VarChar(255)
+  user        user     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model ride_request {
+  id                                  String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  customer_id                         String?  @db.Uuid
+  driver_id                           String?  @db.Uuid
+  status                              String   @db.VarChar(255)
+  created_at                          DateTime @default(now()) @db.Timestamp(6)
+  updated_at                          DateTime @default(now()) @db.Timestamp(6)
+  user_ride_request_customer_idTouser user?    @relation("ride_request_customer_idTouser", fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_ride_request_driver_idTouser   user?    @relation("ride_request_driver_idTouser", fields: [driver_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model user {
+  id                                                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                                               String             @unique @db.VarChar(255)
+  firstName                                           String?            @db.VarChar(255)
+  lastName                                            String?            @db.VarChar(255)
+  roq_user_id                                         String             @db.VarChar(255)
+  tenant_id                                           String             @db.VarChar(255)
+  created_at                                          DateTime           @default(now()) @db.Timestamp(6)
+  updated_at                                          DateTime           @default(now()) @db.Timestamp(6)
+  delivery_request_delivery_request_courier_idTouser  delivery_request[] @relation("delivery_request_courier_idTouser")
+  delivery_request_delivery_request_customer_idTouser delivery_request[] @relation("delivery_request_customer_idTouser")
+  feedback                                            feedback[]
+  organization                                        organization[]
+  ride_request_ride_request_customer_idTouser         ride_request[]     @relation("ride_request_customer_idTouser")
+  ride_request_ride_request_driver_idTouser           ride_request[]     @relation("ride_request_driver_idTouser")
+}
